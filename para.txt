@@ -93,6 +93,8 @@ redrawScreen(){
                 
                 ex=$(absolutePathList | cut -d' ' -f1 | cut -b 7-10)
                 
+                do
+                
                  if [ $ex == '---' ]
                 then
                 echo -e "\e$formatted_dir_list" 
@@ -100,8 +102,8 @@ redrawScreen(){
                 echo "$formatted_dir_list" 
                 fi
                 
-                do
-                read line
+                while read line
+                    do
                     echo -e "\n$line"
                     ((dir_num++))
                     if [ $((cursor-dir_num-1)) -eq $dir_num ]
@@ -113,6 +115,7 @@ redrawScreen(){
                         dir_mod_date=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f 6,7,8 --output-delimiter=' ')
                         echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
                     fi
+                done
                 done
 }
 redrawScreen
