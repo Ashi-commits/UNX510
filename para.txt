@@ -93,9 +93,9 @@ redrawScreen(){
                 
                  if [ $(absolutePathList | cut -d' ' -f1 | cut -b 7-10) == '---' ]
                 then
-                echo -e "\e$formatted_dir_list" |
+                echo -e "\e$formatted_dir_list" 
                 else
-                echo "$formatted_dir_list" |
+                echo "$formatted_dir_list" 
                 fi
                 while read line
                 do
