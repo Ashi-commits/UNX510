@@ -67,20 +67,6 @@ absolutePathList(){
         done
         #
 
-        #print the array in reverse order
-        while [ $dir_num -ge 0 ]
-        do
-            if [ "$1" == '' ]
-            then
-                echo "${abs_path_detailed[$dir_num]}"
-            elif [ "$1" -eq $(("${#abs_path[@]}"-$dir_num)) ]
-            then
-                echo "${abs_path[$dir_num]}"
-            fi
-            ((dir_num--))
-        done
-        #
-
 }
 
 
