@@ -95,12 +95,13 @@ redrawScreen(){
                 
                  if [ $ex == '---' ]
                 then
-                echo -e "\e$formatted_dir_list" |
+                echo -e "\e$formatted_dir_list" 
                 else
-                echo "$formatted_dir_list" |
+                echo "$formatted_dir_list" 
                 fi
-                while read line
+                
                 do
+                read line
                     echo -e "\n$line"
                     ((dir_num++))
                     if [ $((cursor-dir_num-1)) -eq $dir_num ]
