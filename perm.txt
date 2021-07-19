@@ -94,7 +94,7 @@ cursor=$((total_dirs*2+1))
 
 redrawScreen(){
     #get the detailed listing of all directories in the current directory and print their permissions and names
-    formatted_dir_list=$(absolutePathList | cut -d' ' -f1 -f9 | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
+    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' ' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
 
 
     dir_num=0
@@ -114,7 +114,7 @@ redrawScreen(){
                         dir_owner=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f3)
                         dir_group=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f4)
                         dir_size=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f5)
-                        dir_mod_date=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f6 -f7 -f8)
+                        dir_mod_date=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f 6,7,8 --output-delimiter=' ')
                         echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
                     fi
                 done
