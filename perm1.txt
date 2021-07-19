@@ -1,0 +1,128 @@
+# Assignment 3
+# Course:                UNX510
+# Family Name:           Sahu
+# Given Name:            Ayushi
+# Student Number:        143-789-188
+# Login name:            asahu
+# Professor:             Shahdad Shariatmadari
+# Due Date:              July 19, 2021
+#
+# I declare that the attached assignment is my own work in accordance with
+# Seneca Academic Policy.  No part of this assignment has been copied manually
+# or electronically from any other source (including web sites) or distributed
+# to other students.
+##############################################################################
+
+#!/bin/bash
+#capture the SIGINT (CTRL-C) keyboard interrupt signal and terminate the script with appropriate cleanup measures 
+#trap "stty icanon icrnl echo; tput cup $(tput lines) 0; exit 0" SIGINT
+case $# in
+    0)  directory_list=.
+    ;;
+    1)  #if the number of arguments IS one, but the specified directory does not exist, display an error message
+        if [ ! -d $1 ]
+        then
+            echo "$1 is not a valid directory name" >&2
+            exit 1
+        else
+            #otherwise, store the first argument as the directory
+            directory_list=$1
+            cd $directory_list
+        fi
+    ;; 
+    *) #if the number of arguments supplied to the script is greater than 1, display the script's usage
+    echo "Usage: pathdisplay [ dir-name ]" >&2
+        exit 1
+    ;;
+esac
+
+absolutePathList(){
+
+        #array and directory count declarations
+        declare -a abs_path_detailed #full detailed listings of each directory
+        declare -a abs_path #absolute path of each directory (from root to current directory)
+        dir_num=0
+
+        #loops through each directory in the absolute path to root
+        while true
+        do
+            #if the current directory is root, store its long listing and end the loop
+            if [ $(basename $(pwd)) == '/' ]
+            then
+                abs_path_detailed[$dir_num]=$(basename $(pwd))
+                abs_path[$dir_num]=$(pwd)
+                abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")
+                break
+            fi
+            #
+
+            #store each directory's long listing
+            abs_path_detailed[$dir_num]=$(basename $(pwd))
+            abs_path[$dir_num]=$(pwd)
+            cd ..
+            abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")	
+            ((dir_num++))
+            #
+        done
+        #
+
+        #print the array in reverse order
+        while [ $dir_num -ge 0 ]
+        do
+            if [ "$1" == '' ]
+            then
+                echo "${abs_path_detailed[$dir_num]}"
+            elif [ "$1" -eq $(("${#abs_path[@]}"-$dir_num)) ]
+            then
+                echo "${abs_path[$dir_num]}"
+            fi
+            ((dir_num--))
+        done
+        #
+
+}
+
+
+#get the total number of directories
+total_dirs=$(absolutePathList | wc -l)
+
+#initial cursor position
+cursor=$((total_dirs*2+1))
+
+
+
+redrawScreen(){
+    #get the detailed listing of all directories in the current directory and print their permissions and names
+    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' ' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
+
+
+    dir_num=0
+    clear
+                echo -e "Owner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
+                
+                #prints each directory listing on alternate lines to have line spacing
+                echo "$formatted_dir_list" |
+                while read line
+                do
+                    echo -e "\n$line"
+                    ((dir_num++))
+                    if [ $((cursor-dir_num-1)) -eq $dir_num ]
+                    then
+
+                        dir_links=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f2)
+                        dir_owner=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f3)
+                        dir_group=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f4)
+                        dir_size=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f5)
+                        dir_mod_date=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f 6,7,8 --output-delimiter=' ')
+                        echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
+                    fi
+                done
+
+}
+redrawScreen
+
+current_dir=$total_dirs
+orig_dircolumn=$dircolumn
+
+#get the initial current directory (by its number) when the script first executes
+target_dir=$(absolutePathList $current_dir)
