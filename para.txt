@@ -108,7 +108,7 @@ redrawScreen(){
                         echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
                     fi
                 done
-                done
+ 
 }
 redrawScreen
 current_dir=$total_dirs
