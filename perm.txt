@@ -75,7 +75,7 @@ absolutePathList(){
 
 redrawScreen(){
     #get the detailed listing of all directories in the current directory and print their permissions and names
-    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g' | sed -e 's/\2019/' -e 's/\//g')
+    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g' | sed -e 's/\2019\/\/\	/g')
 
     
                 echo -e "\nOwner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
