@@ -125,7 +125,7 @@ declare -a perm_group=($((orig_dircolumn)) $((orig_dircolumn-4)) $((orig_dircolu
     && [ "${perm_group[5]}" == "-" ] \
     && [ "${perm_group[6]}" == "-" ]
     then
-     result=$(less -p "- - -" "$dircolumn"  "$target_dir" 2> /dev/null)
+     result=$(less -p "- - -" "$formatted_dir_list"  "$target_dir" 2> /dev/null)
     fi
 
 redrawScreen
