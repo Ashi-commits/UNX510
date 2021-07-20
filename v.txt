@@ -38,11 +38,11 @@ fi
 path=`readlink -f $input` # get the absolute path of the directory
 textpath=`echo $path` # get the absolute path in string form
 
-dirs=$(IFS=/; set -f; set -- $path; echo $#) # get number of directories (besides root)
+dirs=$(set -- $path; echo $#) # get number of directories (besides root)
 
 i="2" #while loop prints entire textpath, add if statement to see if first in array, if so, then print without the $d
 
-dirArray[$i]=`echo $textpath | awk -F '/' '{print $n }' n=$i`
+dirArray[$i]=`echo $textpath | cut -d"/" -f$i
 
 dirName=${dirArray[$i]}
 
@@ -53,7 +53,7 @@ i=$[$i+1]
 
 while (( $i <= $dirs )) # store each level by itself in an array spot
 do
-	dirArray[$i]=`echo $textpath | awk -F '/' '{print "/" $e }' e=$i`
+	dirArray[$i]=`echo $textpath |  cut -d"/" -f$i
 	
 	dirName=$dirName${dirArray[$i]}
 
@@ -73,7 +73,7 @@ currentLevel=$maxLevel
 	echo "Owner   Group   Other   Filename"
 	echo "-----   -----   -----   --------"
 	echo " "
-	ls -ld / | awk -F 'd' '{print $2}' | awk '{gsub(/.{3}/,"& ")}1'  | awk '{print $1 " " $2 " " $3 }' | awk '{gsub(/.{1}/,"& ")}1' | awk -F '.' '{print $1 "  /"}' # print only the permissions for the root folder
+	ls -ld / |  cut -d"d" -f2 | awk '{gsub(/.{3}/,"& ")}1'  | awk '{print $1 " " $2 " " $3 }' | awk '{gsub(/.{1}/,"& ")}1' | awk -F '.' '{print $1 "  /"}' # print only the permissions for the root folder
 	echo " "
 
 	dirName=""
