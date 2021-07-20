@@ -50,19 +50,23 @@ absolutePathList(){
         #Loop through each level in the absolute path, starting at the root directory
         while :
         do
-            #storing the path into declared variables
-       
+            # checking if the current directory is root
+            if [ $(basename $(pwd)) == '/' ]
+	    #if true then storing the path into the defined variables
+            then
+                path[$level]=$(basename $(pwd))
+                absolute_path[$level]=$(pwd)
+                path[$level]=$(ls -ld "${path[$level]}")
+                break
+            fi
+		
+            #else storing the directories at each level
             path[$level]=$(basename $(pwd))
             absolute_path[$level]=$(pwd)
-	    cd ..
-            path[$level]=$(ls -ld "${path[$level]}")
-	    
-	    #checking if current directory is not the root directory
-	     if [ $(basename $(pwd)) != '/' ]
-	     then
-            	((level++))
-	     fi
-            
+            #cd ..
+            path[$level]=$(ls -ld "${path[$level]}")	
+            ((level++))
+    
         done
         
         #print the directories in accordance of the user ouput using array
