@@ -80,7 +80,7 @@ redrawScreen(){
     formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' ' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
     dir_num=0
     
-                echo -e "\n\nOwner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
+                echo -e "\nOwner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
                 #prints each directory listing on alternate lines to have line spacing
                 echo -e "\e[1;$formatted_dir_list]" 
