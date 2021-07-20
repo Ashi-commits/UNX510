@@ -53,7 +53,7 @@ i=$[$i+1]
 
 while (( $i <= $dirs )) # store each level by itself in an array spot
 do
-	dirArray[$i]=`echo $textpath |  cut -d"/" -f$i
+	dirArray[$i]=`echo $textpath |  cut -d"/" -f${i}
 	
 	dirName=$dirName${dirArray[$i]}
 
@@ -61,9 +61,6 @@ do
 
 	i=$[$i+1]
 done
-
-maxLevel=$i # set maxLevel as the max level
-currentLevel=$maxLevel
 
 # all done, now dirNameArray stores each directory in its absolute path in each of its array spots, next we must use it to loop through and display the permissions
 
