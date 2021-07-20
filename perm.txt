@@ -12,26 +12,28 @@
 # or electronically from any other source (including web sites) or distributed
 # to other students.
 ##############################################################################
-#!/bin/bash 
-
-if (( "$#" >= 2 ))
-then
-	echo "Usage: pathdisplay [dir-name]"
-	exit 1 
-fi
-
-if (( "$#" > 0 ))
-then
-	directory_list=$1
-    cd $directory_list
-fi
-
-if [ ! -d $directory_list ]
-then
-	echo "$directory_list is not a valid directory name"
-	exit 1
-fi
-
+#!/bin/bash
+#capture the SIGINT (CTRL-C) keyboard interrupt signal and terminate the script with appropriate cleanup measures 
+#trap "stty icanon icrnl echo; tput cup $(tput lines) 0; exit 0" SIGINT
+case $# in
+    0)  directory_list=.
+    ;;
+    1)  #if the number of arguments IS one, but the specified directory does not exist, display an error message
+        if [ ! -d $1 ]
+        then
+            echo "$1 is not a valid directory name" >&2
+            exit 1
+        else
+            #otherwise, store the first argument as the directory
+            directory_list=$1
+            cd $directory_list
+        fi
+    ;; 
+    *) #if the number of arguments supplied to the script is greater than 1, display the script's usage
+    echo "Usage: pathdisplay [ dir-name ]" >&2
+        exit 1
+    ;;
+esac
 absolutePathList(){
         #array and directory count declarations
         declare -a abs_path_detailed #full detailed listings of each directory
@@ -72,21 +74,16 @@ absolutePathList(){
         done
         #
 }
-#get the total number of directories
-total_dirs=$(absolutePathList | wc -l)
 
 redrawScreen(){
-
     #get the detailed listing of all directories in the current directory and print their permissions and names
     formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' ' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
-
-
     dir_num=0
     
                 echo -e "Owner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
                 #prints each directory listing on alternate lines to have line spacing
-                echo -e "\e$formatted_dir_list"
+                echo "$formatted_dir_list" 
+                
 }
 redrawScreen
-current_dir=$total_dirs
