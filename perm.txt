@@ -43,16 +43,16 @@ absolutePathList(){
         while :
         do
             #if the current directory is root, store its long listing and end the loop
-            if [ $(pwd | sed 's#.*/##') == '/' ]
+            if [ $(basename $(pwd)) == '/' ]
             then
-                abs_path_detailed[$dir_num]=$(pwd | sed 's#.*/##')
+                abs_path_detailed[$dir_num]=$(basename $(pwd))
                 abs_path[$dir_num]=$(pwd)
                 abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")
                 break
             fi
             #
             #store each directory's long listing
-            abs_path_detailed[$dir_num]=$(pwd | sed 's#.*/##')
+            abs_path_detailed[$dir_num]=$(basename $(pwd))
             abs_path[$dir_num]=$(pwd)
             cd ..
             abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")	
