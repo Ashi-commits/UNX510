@@ -77,7 +77,7 @@ total_dirs=$(absolutePathList | wc -l)
 
 redrawScreen(){
     #get the detailed listing of all directories in the current directory and print their permissions and names
-    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g'  | ' sed 's/2019// /g')
+    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
 
 
     dir_num=0
