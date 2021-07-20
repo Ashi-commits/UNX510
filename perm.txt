@@ -77,7 +77,7 @@ total_dirs=$(absolutePathList | wc -l)
 
 redrawScreen(){
     #get the detailed listing of all directories in the current directory and print their permissions and names
-    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' | ' sed 's/2019///' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
+    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g'  | ' sed 's/2019// /g')
 
 
     dir_num=0
@@ -85,12 +85,8 @@ redrawScreen(){
                 echo -e "Owner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
                 #prints each directory listing on alternate lines to have line spacing
-                echo -e "\e$formatted_dir_list" | grep "- - -" |
-                while read line
-                do
-                    echo -e "\n$line"
-                    ((dir_num++))
-                done
+                echo -e "\e$formatted_dir_list" |
+
 }
 redrawScreen
 current_dir=$total_dirs
