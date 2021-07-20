@@ -28,8 +28,10 @@ fi
 #if argument is 1
 if (( "$#" > 0 ))
 then
+	#storing the directory or directory path passed in the argument
 	directory_list=$1
-   	cd directory_list
+	#changin to specified directory
+   	cd $directory_list
 fi
 
 #if directory doesn't exists
@@ -38,6 +40,7 @@ then
 	echo "$directory_list is not a valid directory name"
 	exit 1
 fi
+
 absolutePathList(){
 
 	#directory count
