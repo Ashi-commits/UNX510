@@ -82,7 +82,7 @@ redrawScreen(){
                 echo -e "\nOwner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
                 #prints each directory listing on alternate lines to have line spacing
-                echo -e "$formatted_dir_list\n" | grep --color -E '- - -|$'
+                echo -e "$formatted_dir_list\n" | grep --color '- - -|$'
                 
 }
 redrawScreen
