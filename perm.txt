@@ -14,8 +14,6 @@
 ##############################################################################
 #!/bin/bash
 
-export GREP_OPTIONS='--color=auto' GREP_COLOR='100;8'
-
 #capture the SIGINT (CTRL-C) keyboard interrupt signal and terminate the script with appropriate cleanup measures 
 trap "stty icanon icrnl echo; tput cup $(tput lines) 0; exit 0" SIGINT
 if (( "$#" >= 2 ))
@@ -84,7 +82,7 @@ redrawScreen(){
                 echo -e "\nOwner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
                 #prints each directory listing on alternate lines to have line spacing
-                echo -e "$formatted_dir_list\n" | grep - - -
+                echo -e "$formatted_dir_list\n" | grep --color -E '- - -|$'
                 
 }
 redrawScreen
