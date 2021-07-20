@@ -69,7 +69,7 @@ currentLevel=$maxLevel
 
 #dirs=$((dirs + 1)) # add root(?) maybe?
 
-while [ "$options" != "q" ]; do #until q is pressed, loop
+
 	echo "Owner   Group   Other   Filename"
 	echo "-----   -----   -----   --------"
 	echo " "
@@ -96,5 +96,3 @@ while [ "$options" != "q" ]; do #until q is pressed, loop
 		echo " "
 		x=$[$x+1]
 	done
-
-done
