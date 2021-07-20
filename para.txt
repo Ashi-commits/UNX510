@@ -95,21 +95,13 @@ redrawScreen(){
                 echo -e "$formatted_dir_list"
                 echo -e "$formatted_dir_list" | grep "[1-16]- - -" | echo "${high} $formatted_dir_list"
                 echo "${normal}"
-                
-                while read line
-                    do
-                    echo -e "\n$line"
-                    ((dir_num++))
-                    if [ $((cursor-dir_num-1)) -eq $dir_num ]
-                    then
+
                         dir_links=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f2)
                         dir_owner=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f3)
                         dir_group=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f4)
                         dir_size=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f5)
                         dir_mod_date=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f 6,7,8 --output-delimiter=' ')
                         echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
-                    fi
-                done
  
 }
 redrawScreen
