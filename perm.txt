@@ -52,8 +52,8 @@ absolutePathList(){
         do
             #storing the path into declared variables
        
-            path[$level]=$(basename $(PWD))
-            absolute_path[$level]=$(PWD)
+            path[$level]=$(basename $(pwd))
+            absolute_path[$level]=$(pwd)
             path[$level]=$(ls -ld "${path[$level]}")
 	    
 	    #checking if current directory is not the root directory
