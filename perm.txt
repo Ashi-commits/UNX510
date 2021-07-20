@@ -63,6 +63,7 @@ absolutePathList(){
             #else storing the directories at each level
             path[$level]=$(basename $(pwd))
             absolute_path[$level]=$(pwd)
+	    #changing to the root directory to set the directory path
             cd ..
             path[$level]=$(ls -ld "${path[$level]}")	
             ((level++))
