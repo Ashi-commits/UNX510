@@ -19,7 +19,7 @@
 trap "stty icanon icrnl echo; tput cup $(tput lines) 0; exit 0" SIGINT
 
 #checking for the arguments are more than 1
-if (( "$#" > 1 ))
+if (( "$#" >= 2 ))
 then
 	echo "Usage: pathdisplay [dir-name]"
 	exit 1 
