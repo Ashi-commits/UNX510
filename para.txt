@@ -43,17 +43,17 @@ absolutePathList(){
         while :
         do
             #if the current directory is root, store its long listing and end the loop
-            if [ $(basename $(pwd)) == '/' ]
+            if [ $(pwd) == '/' ]
             then
-                abs_path_detailed[$dir_num]=$(basename $(pwd))
-                abs_path[$dir_num]=$(pwd)
+                abs_path_detailed[$dir_num]=/)
+                abs_path[$dir_num]=/
                 abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")
                 break
             fi
             #
             #store each directory's long listing
-            abs_path_detailed[$dir_num]=$(basename $(pwd))
-            abs_path[$dir_num]=$(pwd)
+            abs_path_detailed[$dir_num]=/
+            abs_path[$dir_num]=/
             cd ..
             abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")	
             ((dir_num++))
@@ -111,21 +111,3 @@ redrawScreen(){
 redrawScreen
 current_dir=$total_dirs
 
-$dircolumn
-orig_dircolumn=$dircolumn
-declare -a perm_group=($((orig_dircolumn)) $((orig_dircolumn-4)) $((orig_dircolumn-6)) $((orig_dircolumn-8)) $((orig_dircolumn-12)) $((orig_dircolumn-14)) $((orig_dircolumn-16)) $((orig_dircolumn-20)) $((orig_dircolumn-22)) $((orig_dircolumn-24)))
-
-    
-    #variables common to all if statements
-    target_dir=$(absolutePathList $current_dir)
-    
-    perm_group_name=o #other
- 
-    if [ "${perm_group[4]}" == "-" ] \
-    && [ "${perm_group[5]}" == "-" ] \
-    && [ "${perm_group[6]}" == "-" ]
-    then
-     result=$(less -p "- - -" "$formatted_dir_list"  "$target_dir" 2> /dev/null)
-    fi
-
-redrawScreen
