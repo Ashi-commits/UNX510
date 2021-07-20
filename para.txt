@@ -94,7 +94,7 @@ redrawScreen(){
                 echo -e "$formatted_dir_list"
                 echo -e "$formatted_dir_list" | grep "[1-16]- - -" | echo "${normal} Background in red"
                 
-              #  while read line
+                while read line
                     do
                     echo -e "\n$line"
                     ((dir_num++))
