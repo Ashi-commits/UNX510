@@ -83,7 +83,7 @@ redrawScreen(){
                 echo -e "\n\nOwner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
                 #prints each directory listing on alternate lines to have line spacing
-                echo -e "\e$formatted_dir_list" 
+                echo -e "\e[1;$formatted_dir_list]" 
                 
 }
 redrawScreen
