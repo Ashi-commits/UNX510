@@ -73,7 +73,7 @@ currentLevel=$maxLevel
 	echo "Owner   Group   Other   Filename"
 	echo "-----   -----   -----   --------"
 	echo " "
-	ls -ld / |  cut -d"d" -f2 | awk '{gsub(/.{3}/,"& ")}1'  | awk '{print $1 " " $2 " " $3 }' | awk '{gsub(/.{1}/,"& ")}1' | awk -F '.' '{print $1 "  /"}' # print only the permissions for the root folder
+	ls -ld / |  | cut -d' ' -f 1,9 --output-delimiter=' ' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g') # print only the permissions for the root folder
 	echo " "
 
 	dirName=""
@@ -82,16 +82,16 @@ currentLevel=$maxLevel
 	x="2"
 	while (( $x <= $dirs )) 
 	do
-		dirName=${dirArray[$x]}
-		dirAttributes[1]=`ls -ld /${dirNameArray[$x]} | awk -F 'd' '{print $2}' | awk '{gsub(/.{3}/,"& ")}1'  | awk '{print $1 }' | awk '{gsub(/.{1}/,"& ")}1'`
-		dirAttributes[2]=`ls -ld /${dirNameArray[$x]} | awk -F 'd' '{print $2}' | awk '{gsub(/.{3}/,"& ")}1'  | awk '{print $2 }' | awk '{gsub(/.{1}/,"& ")}1'`
-		dirAttributes[3]=`ls -ld /${dirNameArray[$x]} | awk -F 'd' '{print $2}' | awk '{gsub(/.{3}/,"& ")}1'  | awk '{print $3 }' | awk '{gsub(/.{1}/,"& ")}1'`
- 		echo -n ${dirAttributes[1]} " " ${dirAttributes[2]} " " ${dirAttributes[3]} "  "
-	
+		dir_links=$(textpath | sed -n "$dir_num p" | cut -d' ' -f2)
+                        dir_owner=$(textpath | sed -n "$dir_num p" | cut -d' ' -f3)
+                        dir_group=$(textpath | sed -n "$dir_num p" | cut -d' ' -f4)
+                        dir_size=$(textpath | sed -n "$dir_num p" | cut -d' ' -f5)
+                        dir_mod_date=$(textpath | sed -n "$dir_num p" | cut -d' ' -f 6,7,8 --output-delimiter=' ')
+                        echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
 		if [ "$x" = "2" ]; then # if we're on the first non-root directory, echo that
 			echo $dirName
 		else # else, echo the next directories
-			echo $dirName | awk -F '/' '{print $2}'
+			echo $dirName | cut -d'/' -f2 --output-delimiter=' '
 		fi
 		echo " "
 		x=$[$x+1]
