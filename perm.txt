@@ -1,4 +1,4 @@
-# Assignment 3
+# Assignment 2
 # Course:                UNX510
 # Family Name:           Sahu
 # Given Name:            Ayushi
@@ -12,80 +12,90 @@
 # or electronically from any other source (including web sites) or distributed
 # to other students.
 ##############################################################################
+
 #!/bin/bash
 
-#capture the SIGINT (CTRL-C) keyboard interrupt signal and terminate the script with appropriate cleanup measures 
+#terminate the script with appropriate cleanup measures with an exit code 0 and capturing the SIGINT (CTRL-C) keyboard interrupt signal from user
 trap "stty icanon icrnl echo; tput cup $(tput lines) 0; exit 0" SIGINT
-if (( "$#" >= 2 ))
+
+#checking for the arguments are more than 1
+if (( "$#" > 1 ))
 then
 	echo "Usage: pathdisplay [dir-name]"
 	exit 1 
 fi
 
+#if argument is 1
 if (( "$#" > 0 ))
 then
 	directory_list=$1
-    cd directory_list
+   	cd directory_list
 fi
 
+#if directory doesn't exists
 if [ ! -d $directory_list ]
 then
 	echo "$directory_list is not a valid directory name"
 	exit 1
 fi
 absolutePathList(){
-        #array and directory count declarations
-        declare -a abs_path_detailed #full detailed listings of each directory
-        declare -a abs_path #absolute path of each directory (from root to current directory)
+
+	#directory count
         level=0
-        #loops through each directory in the absolute path to root
+
+        #array of directories
+        declare -a path
+        declare -a absolute_path
+	
+        #Loop through each level in the absolute path, starting at the root directory
         while :
         do
-            #if the current directory is root, store its long listing and end the loop
-            if [ $(basename $(pwd)) == '/' ]
-            then
-                abs_path_detailed[$level]=$(basename $(pwd))
-                abs_path[$level]=$(pwd)
-                abs_path_detailed[$level]=$(ls -ld "${abs_path_detailed[$level]}")
-                break
-            fi
-            #
-            #store each directory's long listing
-            abs_path_detailed[$level]=$(basename $(pwd))
-            abs_path[$level]=$(pwd)
-            cd ..
-            abs_path_detailed[$level]=$(ls -ld "${abs_path_detailed[$level]}")	
-            ((level++))
-            #
+            #storing the path into declared variables
+       
+            path[$level]=$(basename $(PWD))
+            absolute_path[$level]=$(PWD)
+            path[$level]=$(ls -ld "${path[$level]}")
+	    
+	    #checking if current directory is not the root directory
+	     if [ $(basename $(pwd)) != '/' ]
+	     then
+            	((level++))
+	     fi
+            
         done
-        #
-        #print the array in reverse order
+        
+        #print the directories in accordance of the user ouput using array
         while [ $level -ge 0 ]
         do
             if [ "$1" == '' ]
             then
-                echo "${abs_path_detailed[$level]}"
-            elif [ "$1" -eq $(("${#abs_path[$1]}"-$level)) ]
+                echo "${path[$level]}"
+            elif [ "$1" -eq $(("${#absolute_path[$1]}"-$level)) ]
             then
-                echo "${abs_path[$level]}"
+                echo "${absolute_path[$level]}"
             fi
             ((level--))
         done
-        #
 }
 
 redrawScreen(){
-    #get the detailed listing of all directories in the current directory and print their permissions and names
+    
+    #setting the path in required format along with the directory name
+    
     formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9,10 | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
 
-    
+    		#displaying the column heading	
                 echo -e "\nOwner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
-                #prints each directory listing on alternate lines to have line spacing
+                #prints each directory in the required format
                 echo -e "$formatted_dir_list\n"
                 
 }
+
+#calling the function to display the directories
 redrawScreen
+
+#cleaning and terminating the program
 tput cup $(tput lines) 0
 stty icanon icrnl echo
 exit 0
