@@ -90,19 +90,42 @@ redrawScreen(){
                 echo -e "Owner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
                 #prints each directory listing on alternate lines to have line spacing
-                high = `tput smso` //for enabling the highlighting
-                normal = `tput rmso` //return to normal mode
-                echo -e "$formatted_dir_list"
-                echo -e "$formatted_dir_list" | grep "[1-16]- - -" | echo "${high} $formatted_dir_list"
-                echo "${normal}"
-
+                echo "$formatted_dir_list" |
+                while read line
+                do
+                    echo -e "\n$line"
+                    ((dir_num++))
+                    if [ $((cursor-dir_num-1)) -eq $dir_num ]
+                    then
                         dir_links=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f2)
                         dir_owner=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f3)
                         dir_group=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f4)
                         dir_size=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f5)
                         dir_mod_date=$(absolutePathList | sed -n "$dir_num p" | cut -d' ' -f 6,7,8 --output-delimiter=' ')
                         echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
- 
+                    fi
+                done
+                
+                dircolumn=$(echo "$formatted_dir_list" | head -1 | sed 's/ [^ ]*$//' | wc -c) 
 }
 redrawScreen
 current_dir=$total_dirs
+
+$dircolumn
+orig_dircolumn=$dircolumn
+declare -a perm_group=($((orig_dircolumn)) $((orig_dircolumn-4)) $((orig_dircolumn-6)) $((orig_dircolumn-8)) $((orig_dircolumn-12)) $((orig_dircolumn-14)) $((orig_dircolumn-16)) $((orig_dircolumn-20)) $((orig_dircolumn-22)) $((orig_dircolumn-24)))
+
+    
+    #variables common to all if statements
+    target_dir=$(absolutePathList $current_dir)
+    
+    perm_group_name=o #other
+ 
+    if [ "${perm_group[4]}" == "-" ] \
+    && [ "${perm_group[5]}" == "-" ] \
+    && [ "${perm_group[6]}" == "-" ]
+    then
+     result=$(less -p "- - -" "$dircolumn"  "$target_dir" 2> /dev/null)
+    fi
+
+redrawScreen
