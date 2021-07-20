@@ -14,71 +14,69 @@
 ##############################################################################
 #!/bin/bash
 #capture the SIGINT (CTRL-C) keyboard interrupt signal and terminate the script with appropriate cleanup measures 
-#trap "stty icanon icrnl echo; tput cup $(tput lines) 0; exit 0" SIGINT
-case $# in
-    0)  directory_list=.
-    ;;
-    1)  #if the number of arguments IS one, but the specified directory does not exist, display an error message
-        if [ ! -d $1 ]
-        then
-            echo "$1 is not a valid directory name" >&2
-            exit 1
-        else
-            #otherwise, store the first argument as the directory
-            directory_list=$1
-            cd $directory_list
-        fi
-    ;; 
-    *) #if the number of arguments supplied to the script is greater than 1, display the script's usage
-    echo "Usage: pathdisplay [ dir-name ]" >&2
-        exit 1
-    ;;
-esac
+trap "stty icanon icrnl echo; tput cup $(tput lines) 0; exit 0" SIGINT
+if (( "$#" >= 2 ))
+then
+	echo "Usage: pathdisplay [dir-name]"
+	exit 1 
+fi
+
+if (( "$#" > 0 ))
+then
+	directory_list=$1
+    cd directory_list
+fi
+
+if [ ! -d $directory_list ]
+then
+	echo "$directory_list is not a valid directory name"
+	exit 1
+fi
 absolutePathList(){
         #array and directory count declarations
         declare -a abs_path_detailed #full detailed listings of each directory
         declare -a abs_path #absolute path of each directory (from root to current directory)
-        dir_num=0
+        level=0
         #loops through each directory in the absolute path to root
         while :
         do
             #if the current directory is root, store its long listing and end the loop
             if [ $(basename $(pwd)) == '/' ]
             then
-                abs_path_detailed[$dir_num]=$(basename $(pwd))
-                abs_path[$dir_num]=$(pwd)
-                abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")
+                abs_path_detailed[$level]=$(basename $(pwd))
+                abs_path[$level]=$(pwd)
+                abs_path_detailed[$level]=$(ls -ld "${abs_path_detailed[$level]}")
                 break
             fi
             #
             #store each directory's long listing
-            abs_path_detailed[$dir_num]=$(basename $(pwd))
-            abs_path[$dir_num]=$(pwd)
+            abs_path_detailed[$level]=$(basename $(pwd))
+            abs_path[$level]=$(pwd)
             cd ..
-            abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")	
-            ((dir_num++))
+            abs_path_detailed[$level]=$(ls -ld "${abs_path_detailed[$level]}")	
+            ((level++))
             #
         done
         #
         #print the array in reverse order
-        while [ $dir_num -ge 0 ]
+        while [ $level -ge 0 ]
         do
             if [ "$1" == '' ]
             then
-                echo "${abs_path_detailed[$dir_num]}"
-            elif [ "$1" -eq $(("${#abs_path[$1]}"-$dir_num)) ]
+                echo "${abs_path_detailed[$level]}"
+            elif [ "$1" -eq $(("${#abs_path[$1]}"-$level)) ]
             then
-                echo "${abs_path[$dir_num]}"
+                echo "${abs_path[$level]}"
             fi
-            ((dir_num--))
+            ((level--))
         done
         #
 }
 
 redrawScreen(){
     #get the detailed listing of all directories in the current directory and print their permissions and names
-    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 --output-delimiter=' ' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
-    dir_num=0
+    formatted_dir_list=$(absolutePathList | cut -d' ' -f 1,9 | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
+
     
                 echo -e "\nOwner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
                 
