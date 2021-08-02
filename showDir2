@@ -1,0 +1,337 @@
+# Assignment 3
+# Course:                UNX510
+# Family Name:           Sahu
+# Given Name:            Ayushi
+# Student Number:        143-789-188
+# Login name:            asahu
+# Professor:             Shahdad Shariatmadari
+# Due Date:              August 2, 2021
+#
+# I declare that the attached assignment is my own work in accordance with
+# Seneca Academic Policy.  No part of this assignment has been copied manually
+# or electronically from any other source (including web sites) or distributed
+# to other students.
+##############################################################################
+
+#!/bin/bash
+
+#capture the SIGINT (CTRL-C) keyboard interrupt signal and terminate the script with appropriate cleanup measures 
+trap "stty icanon icrnl echo; tput cup $(tput lines) 0; exit 0" SIGINT
+case $# in
+    0)  directory_list=.
+    ;;
+    1)  #if the number of arguments IS one, but the specified directory does not exist, display an error message
+        if [ ! -d $1 ]
+        then
+            echo "$1 is not a valid directory name" >&2
+            exit 1
+        else
+            #otherwise, store the first argument as the directory
+            directory_list=$1
+            cd $directory_list
+        fi
+    ;; 
+    *) #if the number of arguments supplied to the script is greater than 1, display the script's usage
+    echo "Usage: pathdisplay [ dir-name ]" >&2
+        exit 1
+    ;;
+esac
+
+absolutePathList(){
+
+        #array and directory count declarations
+        declare -a abs_path_detailed #full detailed listings of each directory
+        declare -a abs_path #absolute path of each directory (from root to current directory)
+        dir_num=0
+
+        #loops through each directory in the absolute path to root
+        while true
+        do
+            #if the current directory is root, store its long listing and end the loop
+            if [ $(basename $(pwd)) == '/' ]
+            then
+                abs_path_detailed[$dir_num]=$(basename $(pwd))
+                abs_path[$dir_num]=$(pwd)
+                abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")
+                break
+            fi
+            #
+
+            #store each directory's long listing
+            abs_path_detailed[$dir_num]=$(basename $(pwd))
+            abs_path[$dir_num]=$(pwd)
+            cd ..
+            abs_path_detailed[$dir_num]=$(ls -ld "${abs_path_detailed[$dir_num]}")	
+            ((dir_num++))
+            #
+        done
+        #
+
+        #print the array in reverse order
+        while [ $dir_num -ge 0 ]
+        do
+            if [ "$1" == '' ]
+            then
+                echo "${abs_path_detailed[$dir_num]}"
+            elif [ "$1" -eq $(("${#abs_path[@]}"-$dir_num)) ]
+            then
+                echo "${abs_path[$dir_num]}"
+            fi
+            ((dir_num--))
+        done
+        #
+
+}
+
+
+#get the total number of directories
+total_dirs=$(absolutePathList | wc -l)
+
+#initial cursor position
+cursor=$((total_dirs*2+1))
+
+
+
+redrawScreen(){
+    #get the detailed listing of all directories in the current directory and print their permissions and names
+    formatted_dir_list=$(absolutePathList | awk '{print $1 $9}' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
+
+
+    dir_num=0
+    clear
+                echo -e "Owner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
+                
+                #prints each directory listing on alternate lines to have line spacing
+                echo "$formatted_dir_list" |
+                while read line
+                do
+                    echo -e "\n$line"
+                    ((dir_num++))
+                    if [ $((cursor-dir_num-1)) -eq $dir_num ]
+                    then
+
+                        dir_links=$(absolutePathList | sed -n "$dir_num p" | awk '{print $2}')
+                        dir_owner=$(absolutePathList | sed -n "$dir_num p" | awk '{print $3}')
+                        dir_group=$(absolutePathList | sed -n "$dir_num p" | awk '{print $4}')
+                        dir_size=$(absolutePathList | sed -n "$dir_num p" | awk '{print $5}')
+                        dir_mod_date=$(absolutePathList | sed -n "$dir_num p" | awk '{print $6, $7, $8}')
+                        echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
+                    fi
+                done
+
+                #moves cursor to position, prints command list and disables echoing of characters and reading commands via the enter key
+                tput cup $(($(tput lines)-4)) 0
+                echo "Valid keys:   k (up), j (down): move between filenames"
+                echo "              h (left), l (right): move between permissions"
+                echo "              r, w, x, -: change permissions;   q: quit"
+                stty -icanon min 1 time 0 -icrnl -echo
+                #
+                
+                if [ "$1" == '' ]
+                then
+                    #get the first character of the directory name
+                    dircolumn=$(echo "$formatted_dir_list" | head -1 | sed 's/ [^ ]*$//' | wc -c) 
+                    tput cup $cursor $dircolumn
+                else
+                    tput cup $cursor $1
+                fi
+}
+redrawScreen
+
+current_dir=$total_dirs
+orig_dircolumn=$dircolumn
+declare -a perm_group=($((orig_dircolumn)) $((orig_dircolumn-4)) $((orig_dircolumn-6)) $((orig_dircolumn-8)) $((orig_dircolumn-12)) $((orig_dircolumn-14)) $((orig_dircolumn-16)) $((orig_dircolumn-20)) $((orig_dircolumn-22)) $((orig_dircolumn-24)))
+permission_navigation(){
+    
+    #variables common to all if statements
+    target_dir=$(absolutePathList $current_dir)
+    perm=$1
+    grant=+ #grant permission
+
+
+    if [ "$1" == 'x' -a $dircolumn -eq "${perm_group[1]}" ] \
+    || [ "$1" == 'w' -a $dircolumn -eq "${perm_group[2]}" ] \
+    || [ "$1" == 'r' -a $dircolumn -eq "${perm_group[3]}" ]
+    then
+        perm_group_name=o #other
+        result=$(chmod "$perm_group_name$grant$perm" "$target_dir" 2> /dev/null)
+    elif [ "$1" == 'x' -a $dircolumn -eq "${perm_group[4]}" ] \
+    || [ "$1" == 'w' -a $dircolumn -eq "${perm_group[5]}" ] \
+    || [ "$1" == 'r' -a $dircolumn -eq "${perm_group[6]}" ]
+    then
+        perm_group_name=g #group    
+        result=$(chmod "$perm_group_name$grant$perm" "$target_dir" 2> /dev/null)
+    elif [ "$1" == 'x' -a $dircolumn -eq "${perm_group[7]}" ] \
+    || [ "$1" == 'w' -a $dircolumn -eq "${perm_group[8]}" ] \
+    || [ "$1" == 'r' -a $dircolumn -eq "${perm_group[9]}" ]
+    then
+        perm_group_name=u #owner
+        result=$(chmod "$perm_group_name$grant$perm" "$target_dir" 2> /dev/null)
+    fi
+
+    if [ "$1" == '--' -a $dircolumn -eq "${perm_group[1]}" ]
+    then
+        perm_group_name=o #other
+        result=$(chmod "$perm_group_name-x" "$target_dir" 2> /dev/null)
+    elif [ "$1" == '--' -a $dircolumn -eq "${perm_group[2]}" ]
+    then
+        perm_group_name=o #other
+        result=$(chmod "$perm_group_name-w" "$target_dir" 2> /dev/null)
+    elif [ "$1" == '--' -a $dircolumn -eq "${perm_group[3]}" ]
+    then
+        perm_group_name=o #other
+        result=$(chmod "$perm_group_name-r" "$target_dir" 2> /dev/null)
+    elif [ "$1" == '--' -a $dircolumn -eq "${perm_group[4]}" ]
+    then
+        perm_group_name=g #other
+        result=$(chmod "$perm_group_name-x" "$target_dir" 2> /dev/null)
+    elif [ "$1" == '--' -a $dircolumn -eq "${perm_group[5]}" ]
+    then
+        perm_group_name=g #other
+        result=$(chmod "$perm_group_name-w" "$target_dir" 2> /dev/null)
+    elif [ "$1" == '--' -a $dircolumn -eq "${perm_group[6]}" ]
+    then
+        perm_group_name=g #other
+        result=$(chmod "$perm_group_name-r" "$target_dir" 2> /dev/null)
+    elif [ "$1" == '--' -a $dircolumn -eq "${perm_group[7]}" ]
+    then
+        perm_group_name=u #other
+        result=$(chmod "$perm_group_name-x" "$target_dir" 2> /dev/null)
+    elif [ "$1" == '--' -a $dircolumn -eq "${perm_group[8]}" ]
+    then
+        perm_group_name=u #other
+        result=$(chmod "$perm_group_name-w" "$target_dir" 2> /dev/null)
+    elif [ "$1" == '--' -a $dircolumn -eq "${perm_group[9]}" ]
+    then
+        perm_group_name=u #other
+        result=$(chmod "$perm_group_name-r" "$target_dir" 2> /dev/null)
+    fi
+        
+        if [ $1 == '-' ]
+        then
+            case $dircolumn 
+            in
+                "${perm_group[0]}")
+                    dircolumn="${perm_group[1]}"
+                ;;
+                "${perm_group[1]}")
+                    dircolumn="${perm_group[2]}"
+                ;;
+                "${perm_group[2]}")
+                    dircolumn="${perm_group[3]}"
+                ;;
+                "${perm_group[3]}")
+                    dircolumn="${perm_group[4]}"
+                ;;
+                "${perm_group[4]}")
+                    dircolumn="${perm_group[5]}"
+                ;;
+                "${perm_group[5]}")
+                    dircolumn="${perm_group[6]}"
+                ;;
+                "${perm_group[6]}")
+                    dircolumn="${perm_group[7]}"
+                ;;
+                "${perm_group[7]}")
+                    dircolumn="${perm_group[8]}"
+                ;;
+                "${perm_group[8]}")
+                    dircolumn="${perm_group[9]}"
+                ;;
+            esac
+        elif [ $1 == '+' ]
+        then
+            case $dircolumn 
+            in
+                "${perm_group[1]}")
+                    dircolumn="${perm_group[0]}"
+                ;;
+                "${perm_group[2]}")
+                    dircolumn="${perm_group[1]}"
+                ;;
+                "${perm_group[3]}")
+                    dircolumn="${perm_group[2]}"
+                ;;
+                "${perm_group[4]}")
+                    dircolumn="${perm_group[3]}"
+                ;;
+                "${perm_group[5]}")
+                    dircolumn="${perm_group[4]}"
+                ;;
+                "${perm_group[6]}")
+                    dircolumn="${perm_group[5]}"
+                ;;
+                "${perm_group[7]}")
+                    dircolumn="${perm_group[6]}"
+                ;;
+                "${perm_group[8]}")
+                    dircolumn="${perm_group[7]}"
+                ;;
+                "${perm_group[9]}")
+                    dircolumn="${perm_group[8]}"
+                ;;
+            esac
+        fi
+
+
+    
+
+    #redraw screen and reposition cursor based on whether a permission has been changed or the permission groups are traversed by
+    #the cursor
+    if [ $1 != '-' ]
+    then
+        redrawScreen $dircolumn
+    else
+        tput cup $cursor $dircolumn
+    fi
+}
+
+#get the initial current directory (by its number) when the script first executes
+target_dir=$(absolutePathList $current_dir)
+
+while true
+do
+
+    #read a single character once from the keyboard
+    case $(dd bs=1 count=1 2> /dev/null) in
+        #move up the list
+        k)  if [ $cursor -gt 3 ]
+            then
+                cursor=$((cursor - 2))
+                redrawScreen $dircolumn
+                ((current_dir--))
+            fi
+        ;;
+        #move down the list
+        j)  if [ $cursor -lt $((total_dirs*2)) ] 
+            then
+                cursor=$((cursor + 2))
+                redrawScreen $dircolumn
+                ((current_dir++))
+            fi
+        ;;
+        #move left
+        h)  permission_navigation -
+        ;;
+        #move right
+        l)  permission_navigation +
+        ;;
+        #read permission
+        r)  permission_navigation r
+        ;;
+        #write permission
+        w)  permission_navigation w
+        ;;
+        #execute permission
+        x)  permission_navigation x
+        ;;
+        #remove a permission
+        -)  permission_navigation --
+        ;;
+        #safely terminate the script and perform cleanup
+        q)  tput cup $(tput lines) 0
+            stty icanon icrnl echo
+            exit 0
+        ;;
+    esac
+done
