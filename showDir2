@@ -104,10 +104,10 @@ do
         then
         tput cup $y 0 # here we put the line at one below the current cursor position
         details=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$)
-	   echo -n " Links: $(echo  $details | cut -d" " -f2)" 
-	   echo -n " Owner: $(echo  $details | cut -d" " -f3)"
-	   echo -n " Group: $(echo  $details | cut -d" " -f4)"
-	   echo -n " Size: $(echo  $details | cut -d" " -f5)"
+	   echo -n " Links: $(echo  $details | cut -d" " -f2)	" 
+	   echo -n " Owner: $(echo  $details | cut -d" " -f3)	"
+	   echo -n " Group: $(echo  $details | cut -d" " -f4)	"
+	   echo -n " Size: $(echo  $details | cut -d" " -f5)	"
            echo -n " Modified: "
 	   echo -n $details | awk '{OFS=" "; print $6, $7, $8}'
    fi
