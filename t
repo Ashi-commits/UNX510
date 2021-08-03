@@ -42,15 +42,15 @@ done
 total_lines=$(cat /tmp/pathdisplay.temp.$$ | wc -l) #total number of lines in temporary file
 cur_Line =1 
 filecolumn=24 #total number of columns
-cursor=$(($total_lines*2+1)) # multiply cursor position to be double the lines and add 1 (because there are new lines between each row)
+cursor=$(($total_lines*2+1)) #setting the cursor position
 position=$(($total_lines*2+1)) # setting a variable to track position of cursor
-temp=$(($total_lines*2+2)) #setting up a variable to display data in position
+temp=$(($total_lines*2+2)) #setting up a variable to display data at th end
 col=`tput cols` #create variable command
 
 while true
 do
 	path_func(){
-	then clear
+	clear
     echo "Owner   Group   Other   Filename"
     echo "-----   -----   -----   --------"
     printf "\n"
