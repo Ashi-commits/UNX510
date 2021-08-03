@@ -14,7 +14,6 @@
 ##############################################################################
 
 
-
 #!/bin/bash
 trap 'stty icanon echo; rm /tmp/pathdisplay.temp.$$; tput cup $lines 0; exit 0' INT # set a path for temp files and set the screen display
 
@@ -72,24 +71,33 @@ do
     echo "Owner   Group   Other   Filename"
     echo "-----   -----   -----   --------"
     printf "\n"
+    if [ echo $(ls -ld $x) | grep -qs "^d........-"
+    then
+    tput snso
     sed -n "$linenumber, $totallines p" /tmp/pathdisplay.temp.$$ | #sed command that prints the permissions, piped into an echo piped into many awks that print the layout
     while read line # while reading the input
     do
-    if echo $(ls -ld $line) | grep -qs "^d..............-"
-    then tput smso
+   
     (echo -n $line | cut -c2- | awk '{print $1,$9}' | sed 's/./& /1' |sed 's/./& /3' | sed 's/./&   /5' \
     | sed 's/./& /9' | sed 's/./& /11' | sed 's/./&   /13' | sed 's/./& /17' | sed 's/./& /19' | \
     sed 's/./&  /21' | sed 's/\/.*\///' | sed 's/[.][ ][/]/ \//') | cut -c -$col 
-    tput rmso
-    else
-    (echo -n $line | cut -c2- | awk '{print $1,$9}' | sed 's/./& /1' |sed 's/./& /3' | sed 's/./&   /5' \
-    | sed 's/./& /9' | sed 's/./& /11' | sed 's/./&   /13' | sed 's/./& /17' | sed 's/./& /19' | \
-    sed 's/./&  /21' | sed 's/\/.*\///' | sed 's/[.][ ][/]/ \//') | cut -c -$col 
-    fi
+
         printf "\n"
 
     done
-    
+    tput rmso
+    else
+    sed -n "$linenumber, $totallines p" /tmp/pathdisplay.temp.$$ | #sed command that prints the permissions, piped into an echo piped into many awks that print the layout
+    while read line # while reading the input
+    do
+   
+    (echo -n $line | cut -c2- | awk '{print $1,$9}' | sed 's/./& /1' |sed 's/./& /3' | sed 's/./&   /5' \
+    | sed 's/./& /9' | sed 's/./& /11' | sed 's/./&   /13' | sed 's/./& /17' | sed 's/./& /19' | \
+    sed 's/./&  /21' | sed 's/\/.*\///' | sed 's/[.][ ][/]/ \//') | cut -c -$col 
+
+        printf "\n"
+
+    done
     
     if [ $cursor -eq $position ] # if the cursor position is the same as the position variable, print the details of the directory
         then
