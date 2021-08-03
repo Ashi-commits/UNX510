@@ -71,7 +71,7 @@ do
     echo "Owner   Group   Other   Filename"
     echo "-----   -----   -----   --------"
     printf "\n"
-    if [ echo $(ls -ld $x) | grep -qs "^d........-"
+    if [ echo $(ls -ld $x) | grep -qs "^d........-" ]
     then
     tput snso
     sed -n "$linenumber, $totallines p" /tmp/pathdisplay.temp.$$ | #sed command that prints the permissions, piped into an echo piped into many awks that print the layout
