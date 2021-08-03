@@ -39,7 +39,7 @@ do
     ls -dl $dir | head -2 | tail -1  >> /tmp/pathdisplay.temp.$$
 done
 
-total_line=$(cat /tmp/pathdisplay.temp.$$ | wc -l) #total number of lines in temporary file
+total_lines=$(cat /tmp/pathdisplay.temp.$$ | wc -l) #total number of lines in temporary file
 cur_Line =1 
 filecolumn=24 #total number of columns
 cursor=$(($total_lines*2+1)) # multiply cursor position to be double the lines and add 1 (because there are new lines between each row)
