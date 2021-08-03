@@ -13,34 +13,27 @@
 # to other students.
 ##############################################################################
 
-
 #!/bin/bash
-trap 'stty icanon echo; rm /tmp/pathdisplay.temp.$$; tput cup $lines 0; exit 0' SIGINT # set a path for temp files and set the screen display and capture the SIGINT (CTRL-C) keyboard interrupt signal
+trap 'stty icanon echo; rm /tmp/pathdisplay.temp.$$; tput cup $lines 0; exit 0' SIGNINT # set a path for temp files and set the screen display and catches signal CRTL+C.
 
+# case statement to determine how may arguments should be in (0 sets path to current path, 1 sets path to the path specified, more displays usage instructions and exits
 case $# in
-    0)  directory_list=.
-    ;;
-    1)  #if the number of arguments IS one, but the specified directory does not exist, display an error message
-        if [ ! -d $1 ]
-        then
-            echo "$1 is not a valid directory name" >&2
-            exit 1
-        else
-            #otherwise, store the first argument as the directory
-            directory_list=$1
-            cd $directory_list
-        fi
-    ;; 
-    *) #if the number of arguments supplied to the script is greater than 1, display the script's usage
-    echo "Usage: pathdisplay [ dir-name ]" >&2
-        exit 1
-    ;;
+	0) directory=. ;;
+	1) directory=$1 ;;
+	*) echo "Usage: perm [ directory-name ]" >&2
+	exit 1 ;;
 esac
 
+#next, check for valid directory
+if [ ! -d $directory ]
+then
+	echo "$1 is not a valid directory name" >&2
+	exit 1
+fi
 
 
 #create array for each directory by using sed into piped awk piped into sed
-directories=$(realpath $dir | sed -r 's/\//& \n/g' | awk '{$1=$1} {FS="/"; OFS=""} {print "/"$1}' | sed 's/\/\//\//')
+directories=$(realpath $directory | sed -r 's/\//& \n/g' | awk '{$1=$1} {FS="/"; OFS=""} {print "/"$1}' | sed 's/\/\//\//')
 
 #loop through each of the directories , put the ls output into the temp file
 x=""
@@ -69,107 +62,39 @@ stty -icanon min 1 time 0 -echo
 
 col=`tput cols` #create variable command
 
-path_fun(){
+while true
+do
+	if [ $redraw = yes ] # if the redraw variable is yes, the we clear the screen and redo the table
+		
+	then clear
+    echo "Owner   Group   Other   Filename"
+    echo "-----   -----   -----   --------"
+    printf "\n"
+    sed -n "$linenumber, $totallines p" /tmp/pathdisplay.temp.$$ | #sed command that prints the permissions, piped into an echo piped into many awks that print the layout
+    while read line # while reading the input
+    do
+   
+    (echo -n $line | cut -c2- | awk '{print $1,$9}' | sed 's/./& /1' |sed 's/./& /3' | sed 's/./&   /5' \
+    | sed 's/./& /9' | sed 's/./& /11' | sed 's/./&   /13' | sed 's/./& /17' | sed 's/./& /19' | \
+    sed 's/./&  /21' | sed 's/\/.*\///' | sed 's/[.][ ][/]/ \//') | cut -c -$col 
 
-        #array and directory count declarations
-        declare -a absolute_path #full detailed listings of each directory
-        declare -a path #absolute path of each directory (from root to current directory)
-        dir_num=0
+        printf "\n"
 
-        #loops through each directory in the absolute path to root
-        while true
-        do
-            #if the current directory is root, store its long listing and end the loop
-            if [ $(basename $(pwd)) == '/' ]
-            then
-                absolute_path[$dir_num]=$(basename $(pwd))
-                path[$dir_num]=$(pwd)
-                absolute_path[$dir_num]=$(ls -ld "${absolute_path[$dir_num]}")
-                break
-            fi
-            #
-
-            #store each directory's long listing
-            absolute_path[$dir_num]=$(basename $(pwd))
-            path[$dir_num]=$(pwd)
-            cd ..
-            absolute_path[$dir_num]=$(ls -ld "${absolute_path[$dir_num]}")	
-            ((dir_num++))
-            #
-        done
-        #
-
-        #print the array in reverse order
-        while [ $dir_num -ge 0 ]
-        do
-            if [ "$1" == '' ]
-            then
-                echo "${absolute_path[$dir_num]}"
-            elif [ "$1" -eq $(("${#path[@]}"-$dir_num)) ]
-            then
-                echo "${path[$dir_num]}"
-            fi
-            ((dir_num--))
-        done
-        #
-
-}
-
-
-#get the total number of directories
-total_dirs=$(absolutePathList | wc -l)
-
-#initial cursor position
-cursor=$((total_dirs*2+1))
-
-
-
-print_func(){
-    #get the detailed listing of all directories in the current directory and print their permissions and names
-    formatted_dir_list=$(path_fun | awk '{print $1 $9}' | sed 's/d//' | sed 's/\. //' | sed 's/rwx/r w x   /g' | sed 's/r--/r - -   /g'| sed 's/rw-/r w -   /g' | sed 's/r-x/r - x   /g' | sed 's/-w-/- w -   /g' | sed 's/-wx/- w x   /g' | sed 's/--x/- - x   /g' | sed 's/---/- - -   /g')
-	echo ""
-
-    dir_num=0
-    clear
-                echo -e "Owner \tGroup \tOther \tFilename\n----- \t----- \t----- \t--------"
-                
-                #prints each directory listing on alternate lines to have line spacing
-                echo "$formatted_dir_list" |
-                while read line
-                do
-                    echo -e "\n$line"
-                    ((dir_num++))
-                    if [ $((cursor-dir_num-1)) -eq $dir_num ]
-                    then
-
-                        links=$(absolutePathList | sed -n "$dir_num p" | awk '{print $2}')
-                        owner=$(absolutePathList | sed -n "$dir_num p" | awk '{print $3}')
-                        group=$(absolutePathList | sed -n "$dir_num p" | awk '{print $4}')
-                        size=$(absolutePathList | sed -n "$dir_num p" | awk '{print $5}')
-                        modified=$(absolutePathList | sed -n "$dir_num p" | awk '{print $6, $7, $8}')
-                        echo -en "  Links: "$links"   Owner: "$owner"  Group: "$group"  Size: "$size"  \nModified: "$modified""
-                    fi
-                done
-
-                
-                tput cup $(($(tput lines)-4)) 0
-                echo "Valid keys:   k (up), j (down): move between filenames"
-                echo "              h (left), l (right): move between permissions"
-                echo "              r, w, x, -: change permissions;   q: quit"
-                stty -icanon min 1 time 0 -icrnl -echo
-                #
-                
-                if [ "$1" == '' ]
-                then
-                    #get the first character of the directory name
-                    dircolumn=$(echo "$formatted_dir_list" | head -1 | sed 's/ [^ ]*$//' | wc -c) 
-                    tput cup $cursor $dircolumn
-                else
-                    tput cup $cursor $1
-                fi
-}
-print_fun
-
+    done
+    
+    
+    if [ $cursor -eq $position ] # if the cursor position is the same as the position variable, print the details of the directory
+        then
+        tput cup $y 0 # here we put the line at one below the current cursor position
+        details=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$)
+	   echo -n " Links: $(echo  $details | cut -d" " -f2)" 
+	   echo -n " Owner: $(echo  $details | cut -d" " -f3)"
+	   echo -n " Group: $(echo  $details | cut -d" " -f4)"
+	   echo -n " Size: $(echo  $details | cut -d" " -f5)"
+           echo -n " Modified: "
+	   echo -n $details | awk '{OFS=" "; print $6, $7, $8}'
+   fi
+   
 	lines=`tput lines`
 # print options
 	tput cup $(($lines-4)) 0
@@ -177,6 +102,8 @@ print_fun
         printf "            h (left), l (right): move between permissions \n"
         printf "            r, w, x, -: change permissions;   q: quit"
 	# set redraw to no until an option is chosen
+    	redraw=no
+   fi
 
     tput cup $cursor $filecolumn # move the cursor to the filecolumn position
     command=$(dd bs=3 count=1 2> /dev/null) # create commmand variable that redirects the input
@@ -185,13 +112,13 @@ print_fun
                        then cursor=$((cursor + 2))
                            position=$((position+2))
                            y=$(($y+2))
-			   print_fun
+			   redraw=yes
 		   fi ;; 
        k) if [ $cursor -gt 3 ] # move cursor up if cursor is not too high
                        then cursor=$((cursor - 2))
                         position=$((position - 2))
                         y=$(($y-2))
-			print_fun
+			redraw=yes
                        fi;;
        h) if [ $filecolumn -gt 0 ] # move cursor left if not at the furthest left
           then
@@ -213,62 +140,8 @@ print_fun
 		   filecolumn=$(($filecolumn + 2))
 	   fi
    fi ;;
-       x) if [ $filecolumn -eq 4 ] || [ $filecolumn -eq 12 ] || [ $filecolumn -eq 20 ] #check if cursor is in a position on top of execute permission
-       then
-	       t=""
-	       perm=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$ | awk '{print $9}') 
-	       > /tmp/pathdisplay.temp.$$
-	       for i in $directories
-	       do
-		       t=$t$i
-		       if [ "$t" == "$perm" ]
-		       then
-			       if [ $filecolumn -eq 20 ]
-			       then
-			       chmod o+x $t 2> /dev/null
-		       fi
-		       if [ $filecolumn -eq 12 ]
-		       then
-			       chmod g+x $t 2> /dev/null
-		       fi
-	       if [ $filecolumn -eq 4 ]
-	       then
-		       chmod u+x $t1 2> /dev/null
-	       fi	       
-	       fi
-		       ls -ld $t | head -2 | tail -1 >> /tmp/pathdisplay.temp.$$
-	       done
-	      print_fun
-       fi ;;
-       
-          w) if [ $filecolumn -eq 2 ] || [ $filecolumn -eq 10 ] || [ $filecolumn -eq 18 ] #check if on a write permission
-	  then
-		  t1=""
-		  perm1=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$ | awk '{print $9}')
-		  > /tmp/pathdisplay.temp.$$
-		  for i in $directories
-		  do
-			  t1=$t1$i
-			  if [ "$t1" == "$perm1" ]
-			  then
-				  if [ $filecolumn -eq 2 ]
-				  then
-					  chmod u+w $t1 2> /dev/null
-				  fi
-				  if [ $filecolumn -eq 10 ]
-				  then
-					  chmod g+w $t1 2> /dev/null
-				  fi
-			  if [ $filecolumn -eq 18 ]
-			  then
-				  chmod o+w $t1 2> /dev/null
-			  fi
-		  fi
-			  ls -ld $t1 | head -2 | tail -1 >> /tmp/pathdisplay.temp.$$
-		  done
-		  print_fun
-	  fi ;;
-            r) if [ $filecolumn -eq 0 ] || [ $filecolumn -eq 8 ] || [ $filecolumn -eq 16 ] #check if on a read permission
+   
+    r) if [ $filecolumn -eq 0 ] || [ $filecolumn -eq 8 ] || [ $filecolumn -eq 16 ] #check if on a read permission
           then
 		  
          	  t2=""
@@ -294,9 +167,67 @@ print_fun
 			  fi
 			  ls -ld $t2 | head -2 | tail -1 >> /tmp/pathdisplay.temp.$$
 		  done
-		  print_fun
+		  redraw=yes
 	  fi ;;
 
+   w) if [ $filecolumn -eq 2 ] || [ $filecolumn -eq 10 ] || [ $filecolumn -eq 18 ] #check if on a write permission
+	  then
+		  t1=""
+		  perm1=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$ | awk '{print $9}')
+		  > /tmp/pathdisplay.temp.$$
+		  for i in $directories
+		  do
+			  t1=$t1$i
+			  if [ "$t1" == "$perm1" ]
+			  then
+				  if [ $filecolumn -eq 2 ]
+				  then
+					  chmod u+w $t1 2> /dev/null
+				  fi
+				  if [ $filecolumn -eq 10 ]
+				  then
+					  chmod g+w $t1 2> /dev/null
+				  fi
+			  if [ $filecolumn -eq 18 ]
+			  then
+				  chmod o+w $t1 2> /dev/null
+			  fi
+		  fi
+			  ls -ld $t1 | head -2 | tail -1 >> /tmp/pathdisplay.temp.$$
+		  done
+		  redraw=yes
+	  fi ;;
+           
+   
+       x) if [ $filecolumn -eq 4 ] || [ $filecolumn -eq 12 ] || [ $filecolumn -eq 20 ] #check if cursor is in a position on top of execute permission
+       then
+	       t=""
+	       perm=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$ | awk '{print $9}') 
+	       > /tmp/pathdisplay.temp.$$
+	       for i in $directories
+	       do
+		       t=$t$i
+		       if [ "$t" == "$perm" ]
+		       then
+			       if [ $filecolumn -eq 20 ]
+			       then
+			       chmod o+x $t 2> /dev/null
+		       fi
+		       if [ $filecolumn -eq 12 ]
+		       then
+			       chmod g+x $t 2> /dev/null
+		       fi
+	       if [ $filecolumn -eq 4 ]
+	       then
+		       chmod u+x $t1 2> /dev/null
+	       fi	       
+	       fi
+		       ls -ld $t | head -2 | tail -1 >> /tmp/pathdisplay.temp.$$
+	       done
+	      redraw=yes
+       fi ;;
+       
+       
   -) # when user inputs "-", the script will try to chmod and redirect the output to null
 	  t3=""
           perm3=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$ | awk '{print $9}')
@@ -345,13 +276,13 @@ print_fun
 		   fi
 		   ls -ld $t3 | head -2 | tail -1 >> /tmp/pathdisplay.temp.$$
 	done
-	print_fun ;;
+	redraw=yes ;;
 
 
    q)rm /tmp/pathdisplay.temp.$$ #quit if q is pressed, reset 
            stty icanon echo
            tput cup $lines 0
            exit 0 ;;
-   *)  ;; # anything else, nothing happens
+   *) redraw=no ;; # anything else, nothing happens
    esac
 done
