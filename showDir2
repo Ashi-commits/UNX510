@@ -103,13 +103,12 @@ do
     if [ $cursor -eq $position ] # if the cursor position is the same as the position variable, print the details of the directory
         then
         tput cup $y 0 # here we put the line at one below the current cursor position
-        details=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$)
-	   echo -n " Links: $(echo  $details | cut -d" " -f2)	" 
-	   echo -n " Owner: $(echo  $details | cut -d" " -f3 | head -4)	"
-	   echo -n " Group: $(echo  $details | cut -d" " -f4)	"
-	   echo -n " Size: $(echo  $details | cut -d" " -f5)	"
-           echo -n " Modified: "
-	   echo -n $details | awk '{OFS=" "; print $6, $7, $8}'
+       	dir_links=$(absolutePathList | sed -n "$dir_num p" | awk '{print $2}')
+       	dir_owner=$(absolutePathList | sed -n "$dir_num p" | awk '{print $3}')
+        dir_group=$(absolutePathList | sed -n "$dir_num p" | awk '{print $4}')
+        dir_size=$(absolutePathList | sed -n "$dir_num p" | awk '{print $5}')
+        dir_mod_date=$(absolutePathList | sed -n "$dir_num p" | awk '{print $6, $7, $8}')
+        echo -en "  Links: "$dir_links"   Owner: "$dir_owner"  Group: "$dir_group"  Size: "$dir_size"  \nModified: "$dir_mod_date""
    fi
    
 	lines=`tput lines`
