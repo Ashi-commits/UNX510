@@ -73,7 +73,7 @@ do
     printf "\n"
     if [ echo $(ls -ld $x) | grep -qs "^d........-" ]
     then
-    tput snso
+    tput smso
     sed -n "$linenumber, $totallines p" /tmp/pathdisplay.temp.$$ | #sed command that prints the permissions, piped into an echo piped into many awks that print the layout
     while read line # while reading the input
     do
@@ -105,7 +105,7 @@ do
         tput cup $y 0 # here we put the line at one below the current cursor position
         details=$(sed -n "$(($position/2)) p" /tmp/pathdisplay.temp.$$)
 	   echo -n " Links: $(echo  $details | cut -d" " -f2)	" 
-	   echo -n " Owner: $(echo  $details | cut -d" " -f3)	"
+	   echo -n " Owner: $(echo  $details | cut -d" " -f3 | head -4)	"
 	   echo -n " Group: $(echo  $details | cut -d" " -f4)	"
 	   echo -n " Size: $(echo  $details | cut -d" " -f5)	"
            echo -n " Modified: "
