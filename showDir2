@@ -98,6 +98,7 @@ do
         printf "\n"
 
     done
+    fi
     
     if [ $cursor -eq $position ] # if the cursor position is the same as the position variable, print the details of the directory
         then
