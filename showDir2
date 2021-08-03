@@ -15,22 +15,28 @@
 
 
 #!/bin/bash
-trap 'stty icanon echo; rm /tmp/pathdisplay.temp.$$; tput cup $lines 0; exit 0' INT # set a path for temp files and set the screen display
+trap 'stty icanon echo; rm /tmp/pathdisplay.temp.$$; tput cup $lines 0; exit 0' SIGINT # set a path for temp files and set the screen display and capture the SIGINT (CTRL-C) keyboard interrupt signal
 
-# case statement to determine how may arguments should be in (0 sets path to current path, 1 sets path to the path specified, more displays usage instructions and exits
 case $# in
-	0) dir=. ;;
-	1) dir=$1 ;;
-	*) echo "Usage: perm [ dir-name ]" >&2
-	exit 1 ;;
+    0)  directory_list=.
+    ;;
+    1)  #if the number of arguments IS one, but the specified directory does not exist, display an error message
+        if [ ! -d $1 ]
+        then
+            echo "$1 is not a valid directory name" >&2
+            exit 1
+        else
+            #otherwise, store the first argument as the directory
+            directory_list=$1
+            cd $directory_list
+        fi
+    ;; 
+    *) #if the number of arguments supplied to the script is greater than 1, display the script's usage
+    echo "Usage: pathdisplay [ dir-name ]" >&2
+        exit 1
+    ;;
 esac
 
-#next, check for valid directory
-if [ ! -d $dir ]
-then
-	echo "$1 is not a valid directory name" >&2
-	exit 1
-fi
 
 
 #create array for each directory by using sed into piped awk piped into sed
@@ -171,7 +177,6 @@ print_fun
         printf "            h (left), l (right): move between permissions \n"
         printf "            r, w, x, -: change permissions;   q: quit"
 	# set redraw to no until an option is chosen
-   fi
 
     tput cup $cursor $filecolumn # move the cursor to the filecolumn position
     command=$(dd bs=3 count=1 2> /dev/null) # create commmand variable that redirects the input
